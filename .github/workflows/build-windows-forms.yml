@@ -2,7 +2,7 @@ name: Build and Release FakePaint
 
 on:
   push:
-    branches: 
+    branches:
       - master
     paths-ignore:
       - '**.md'
@@ -20,29 +20,11 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x'
-
-    - name: Restore dependencies
-      run: dotnet restore
+    - name: Setup MSBuild
+      uses: microsoft/setup-msbuild@v2
 
     - name: Build project
-      run: dotnet build --configuration Release
-
-    - name: Publish as single-file exe with embedded icon
-      run: |
-        dotnet publish FakePaint.csproj `
-          --configuration Release `
-          --runtime win-x64 `
-          --self-contained true `
-          --output ./publish `
-          -p:PublishSingleFile=true `
-          -p:IncludeNativeLibrariesForSelfExtract=true `
-          -p:EnableCompressionInSingleFile=true `
-          -p:DebugType=None `
-          -p:DebugSymbols=false
+      run: msbuild proiect_atestat_random_nou_pt_nota_10.sln /p:Configuration=Release /p:Platform="Any CPU"
 
     - name: Upload Release to GitHub
       uses: softprops/action-gh-release@v2
@@ -50,8 +32,10 @@ jobs:
         tag_name: v${{ github.run_number }}
         name: FakePaint Release v${{ github.run_number }}
         body: |
-          Standalone executable for FakePaint.
-          Just download and run the .exe file.
-          Note that this is only in Beta phase. 
-          Any issues that may occur should be announce to get fixed.
-        files: ./publish/*.exe
+          Windows Forms build for FakePaint (.NET Framework 4.7.2).
+          Download and run the .exe from the assets below.
+          Note that this is only in Beta phase.
+          Any issues that may occur should be announced to get fixed.
+        files: |
+          proiect_atestat_random_nou_pt_nota_10/bin/Release/proiect_atestat_random_nou_pt_nota_10.exe
+          proiect_atestat_random_nou_pt_nota_10/bin/Release/proiect_atestat_random_nou_pt_nota_10.exe.config
