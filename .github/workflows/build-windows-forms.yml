@@ -20,11 +20,33 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Setup MSBuild
-      uses: microsoft/setup-msbuild@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
 
-    - name: Build project
-      run: msbuild proiect_atestat_random_nou_pt_nota_10.sln /p:Configuration=Release /p:Platform="Any CPU"
+    - name: Publish standalone exe
+      run: |
+        dotnet publish proiect_atestat_random_nou_pt_nota_10.csproj `
+          --configuration Release `
+          --runtime win-x64 `
+          --self-contained true `
+          --output ./publish `
+          -p:PublishSingleFile=true `
+          -p:IncludeNativeLibrariesForSelfExtract=true `
+          -p:EnableCompressionInSingleFile=true `
+          -p:DebugType=None `
+          -p:DebugSymbols=false
+
+    - name: Verify publish output
+      shell: pwsh
+      run: |
+        if (-not (Test-Path ./publish/FakePaint.exe)) {
+          Write-Error "FakePaint.exe was not produced in ./publish"
+          Get-ChildItem -Recurse ./publish
+          exit 1
+        }
+        Get-ChildItem ./publish
 
     - name: Upload Release to GitHub
       uses: softprops/action-gh-release@v2
@@ -32,10 +54,9 @@ jobs:
         tag_name: v${{ github.run_number }}
         name: FakePaint Release v${{ github.run_number }}
         body: |
-          Windows Forms build for FakePaint (.NET Framework 4.7.2).
-          Download and run the .exe from the assets below.
+          Standalone executable for FakePaint (no .NET install required).
+          Download and run FakePaint.exe.
           Note that this is only in Beta phase.
           Any issues that may occur should be announced to get fixed.
-        files: |
-          proiect_atestat_random_nou_pt_nota_10/bin/Release/proiect_atestat_random_nou_pt_nota_10.exe
-          proiect_atestat_random_nou_pt_nota_10/bin/Release/proiect_atestat_random_nou_pt_nota_10.exe.config
+        files: ./publish/FakePaint.exe
+        fail_on_unmatched_files: true
